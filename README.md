@@ -1,6 +1,6 @@
 # meeting-transcript
 
-本機、不上傳雲端的會議錄音轉逐字稿工具，給 [Claude Code](https://claude.com/claude-code) 用的 skill。用 Apple 的 MLX 框架跑 Whisper + pyannote 做語者辨識，特別針對粵語/國語/英文混雜場景做過模型挑選。
+本機、不上傳雲端的會議錄音轉逐字稿工具，給 [Claude Code](https://claude.com/claude-code) 用的 skill。用 Apple 的 MLX 框架跑 Whisper + pyannote 做語者辨識，依語言組合（國語/英文為主 vs 粵語為主）提供兩顆可切換的模型。
 
 ## ⚠️ 前提：只能在 Apple Silicon Mac 上跑
 
@@ -15,11 +15,23 @@
 3. 跑語者辨識（pyannote），標出「大概是誰在講話」，跟逐字稿的時間對起來
 4. 讀逐字稿，整理成會議紀錄（背景、決策、待辦）
 
-## 為什麼不用官方 Whisper 模型
+## 模型選擇：看你的語言組合
 
-官方 `whisper-large-v3-turbo` 在粵語上表現明顯偏弱（第三方測試字元錯誤率可達 45%），常把粵語自動轉寫成書面中文而非口語，還會認錯字。這個 skill 預設改用 [`JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english`](https://huggingface.co/JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english)（MIT 授權），一顆針對粵語/英文微調過的版本。實測粵語辨識大幅提升，國語、英文不受影響。
+**預設用官方 `mlx-community/whisper-large-v3-turbo`**，這是給大多數人（會議主要是
+國語/英文，或純英文）的預設值。
 
-如果你的使用情境不涉及粵語，可以在 `SKILL.md` 裡把模型換成官方 `mlx-community/whisper-large-v3-turbo`，不用跑轉檔那一步。
+如果你的會議**主要是粵語**（不是偶爾夾雜，是整段幾乎都用粵語），有另一個選擇：
+[`JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english`](https://huggingface.co/JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english)
+（MIT 授權），一顆針對粵語/英文微調過的版本。官方模型在粵語上表現明顯偏弱（第三方
+測試字元錯誤率可達 45%），常把粵語自動轉寫成書面中文而非口語；純粵語測試時這顆
+微調版大幅勝過官方版。
+
+**但這兩顆是取捨關係，不是「微調版全面更好」**：用真實的、混雜國語/英文技術詞彙
+的會議錄音實測，官方版反而對專有名詞（例如人名、產品名、技術術語）辨識更準——
+微調版為了加強粵語，在這類混合場景犧牲了一些準確度。判斷方式很簡單：**這場會議
+粵語佔多少比例**，佔多數才選微調版，偶爾出現或以國語/英文為主就用官方版（把
+`SKILL.md` 裡的 `--model` 換成 `~/.cache/mlx-whisper-models/cantonese-yue-english`
+即可切換，用微調版需要先跑轉檔那一步，見下面安裝說明）。
 
 ## 安裝
 
@@ -33,7 +45,14 @@ cd meeting-transcript-skill
 
 - 建立獨立的 conda 環境 `whisper`（Python 3.11，避開新版 Python 相依套件缺 wheel 的問題）
 - 安裝 `mlx-whisper`、`opencc-python-reimplemented`、`pyannote.audio`
-- 下載並轉換粵語微調模型成 MLX 格式（約 1.6GB，第一次跑要花幾分鐘）
+
+官方模型會在第一次執行 `mlx_whisper` 時自動下載，不用另外處理。**如果你的會議
+主要是粵語**，加 `--cantonese` 參數多轉換一顆粵語微調模型（約 1.6GB，第一次跑
+要花幾分鐘）：
+
+```bash
+./setup.sh --cantonese
+```
 
 裝完之後，把 `.claude/skills/meeting-transcript/` 和 `scripts/` 整個複製到你自己專案底下（`scripts/` 放在專案根目錄，或跟著 SKILL.md 走都可以，SKILL.md 裡是用相對路徑 `scripts/diarize_and_label.py` 呼叫）。
 
@@ -56,6 +75,9 @@ cd meeting-transcript-skill
 
 ## 已知限制
 
+- **兩顆模型都不完美**：不管用官方版還是粵語微調版，真實錄音上都會轉錯一些
+  專有名詞（人名、產品名、技術術語），逐字稿不能照單全收，重要引用建議回頭
+  聽原音確認
 - **短插話容易被吞併**：一兩秒的回應（「嗯」、「OK」、笑聲）常被合併進旁邊那段較長發言的語者標籤裡，語者標籤是「大致對」，不是逐字精準
 - 兩人以上同時講話、背景吵雜會影響準確度
 - 長錄音（1 小時以上）轉錄 + 語者辨識合計要等幾分鐘到十幾分鐘
