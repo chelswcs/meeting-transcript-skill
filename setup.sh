@@ -36,8 +36,8 @@ fi
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate whisper
 
-echo "== 安裝 mlx-whisper 與 opencc（簡轉繁）=="
-pip install --upgrade mlx-whisper opencc-python-reimplemented
+echo "== 安裝 mlx-whisper、opencc（簡轉繁）、pyannote.audio（語者辨識）=="
+pip install --upgrade mlx-whisper opencc-python-reimplemented pyannote.audio
 
 echo "== 下載模型轉換腳本（Apple 官方 mlx-examples repo）=="
 TMP_DIR="$(mktemp -d)"
@@ -68,5 +68,17 @@ rm -rf "$TMP_DIR"
 
 echo
 echo "完成。模型存在：$MODEL_DIR"
-echo "接下來把 .claude/skills/meeting-transcript/SKILL.md 複製到你專案的"
-echo ".claude/skills/meeting-transcript/ 資料夾，Claude Code 就能用了。"
+echo
+echo "== 語者辨識還需要你自己做兩件事（無法用腳本代勞）=="
+echo "1. 到 https://huggingface.co/pyannote/speaker-diarization-community-1"
+echo "   按一次 Agree and access repository 同意使用條款"
+echo "2. 到 https://huggingface.co/settings/tokens 建立一個新 token，"
+echo "   Token type 選 Custom，只勾 'Read contents of public gated repos"
+echo "   you can access'（不要勾 Read-Only preset，那個只涵蓋你自己的 repo，"
+echo "   涵蓋不到 pyannote 這種別人帳號的公開模型）"
+echo "3. 把 token 存成環境變數，注意是 ~/.zshenv 不是 ~/.zshrc"
+echo "   （.zshrc 只有互動式終端機才會載入，Claude Code 背景執行指令時讀不到）："
+echo "     echo 'export HF_TOKEN=\"你的 token\"' >> ~/.zshenv"
+echo
+echo "接下來把 .claude/skills/meeting-transcript/SKILL.md 和 scripts/ 資料夾"
+echo "複製到你專案的 .claude/skills/meeting-transcript/ 底下，Claude Code 就能用了。"
