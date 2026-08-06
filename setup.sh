@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# 安裝 meeting-transcript skill 需要的環境：獨立 conda 環境、mlx-whisper、
+# 轉換一顆粵語/英文微調過的 Whisper 模型成 MLX 格式。
+#
+# 只能在 Apple Silicon Mac（M1/M2/M3/M4）上跑，因為核心依賴 Apple 的 MLX 框架。
+set -euo pipefail
+
+echo "== 檢查是否為 Apple Silicon =="
+if [[ "$(uname -m)" != "arm64" ]]; then
+  echo "偵測到 $(uname -m)，這個 skill 需要 Apple Silicon Mac，無法繼續。" >&2
+  exit 1
+fi
+
+echo "== 檢查 conda =="
+if ! command -v conda &> /dev/null; then
+  echo "找不到 conda。先裝 Miniconda：https://docs.conda.io/en/latest/miniconda.html" >&2
+  exit 1
+fi
+
+echo "== 檢查 ffmpeg（mlx-whisper 解碼音檔需要）=="
+if ! command -v ffmpeg &> /dev/null; then
+  echo "找不到 ffmpeg。先跑：brew install ffmpeg" >&2
+  exit 1
+fi
+
+echo "== 建立獨立 conda 環境 whisper（Python 3.11）=="
+# 用 3.11 而不是最新版：mlx-whisper 的部分相依套件在 3.13 上還沒有現成的
+# wheel，裝的時候可能失敗或退回原始碼編譯，用 3.11 比較穩。
+if conda env list | grep -q "^whisper "; then
+  echo "環境 whisper 已存在，略過建立"
+else
+  conda create -n whisper python=3.11 -y
+fi
+
+# shellcheck source=/dev/null
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate whisper
+
+echo "== 安裝 mlx-whisper 與 opencc（簡轉繁）=="
+pip install --upgrade mlx-whisper opencc-python-reimplemented
+
+echo "== 下載模型轉換腳本（Apple 官方 mlx-examples repo）=="
+TMP_DIR="$(mktemp -d)"
+curl -fsSL https://raw.githubusercontent.com/ml-explore/mlx-examples/main/whisper/convert.py \
+  -o "$TMP_DIR/convert.py"
+
+echo "== 轉換粵語/英文微調模型成 MLX 格式（約 1.6GB，第一次跑要花幾分鐘）=="
+MODEL_DIR="$HOME/.cache/mlx-whisper-models/cantonese-yue-english"
+mkdir -p "$MODEL_DIR"
+python "$TMP_DIR/convert.py" \
+  --torch-name-or-path JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english \
+  --mlx-path "$MODEL_DIR" \
+  --dtype float16
+
+echo "== 修正檔名 =="
+# convert.py 把權重存成 model.safetensors，但 mlx-whisper 讀取時找的是
+# weights.safetensors，不重新命名的話轉錄會直接找不到模型檔報錯。
+if [[ -f "$MODEL_DIR/model.safetensors" ]]; then
+  mv "$MODEL_DIR/model.safetensors" "$MODEL_DIR/weights.safetensors"
+fi
+
+echo "== 修回 numpy>=2 =="
+# 上一步轉檔會用到 torch，它的相依有時會把 numpy 降到 1.x，而 mlx 需要
+# numpy>=2 才能正常運作，轉完檔要修回來。
+pip install "numpy>=2" --upgrade
+
+rm -rf "$TMP_DIR"
+
+echo
+echo "完成。模型存在：$MODEL_DIR"
+echo "接下來把 .claude/skills/meeting-transcript/SKILL.md 複製到你專案的"
+echo ".claude/skills/meeting-transcript/ 資料夾，Claude Code 就能用了。"
