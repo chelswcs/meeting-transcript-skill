@@ -18,20 +18,6 @@ description: 把會議錄音轉成逐字稿（含語者辨識）並整理成會�
 的 HuggingFace token 設定（腳本裝得完套件，但同意條款、建立 token 這兩步需要
 使用者自己在瀏覽器上做）。
 
-## 模型選擇：預設官方版，粵語為主才切換
-
-**預設用官方 `mlx-community/whisper-large-v3-turbo`**——適合國語/英文為主、
-或純英文的會議。用真實混雜國語/英文技術詞彙的錄音實測，官方版對專有名詞
-（人名、產品名、技術術語）辨識比粵語微調版準。
-
-**如果會議整段幾乎都是粵語**（不是偶爾夾雜），改用針對粵語/英文微調過的
-[`JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english`](https://huggingface.co/JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english)
-（MIT 授權，純粵語測試時大幅勝過官方版）——先跑 `./setup.sh --cantonese`
-轉檔，再把下面指令裡的 `--model` 換成
-`~/.cache/mlx-whisper-models/cantonese-yue-english`。
-
-先跟使用者確認這場會議的語言組合，不確定就用官方版（適用範圍較廣的預設值）。
-
 ## 步驟 1：轉逐字稿
 
 1. 跟使用者確認錄音檔路徑（不要猜路徑，音檔可能在錄音 App 匯出的資料夾，
@@ -58,8 +44,7 @@ mlx_whisper meetings/transcripts/<檔名>.wav \
 
 用 `-f json`（不是 txt）才會保留每段的時間戳，語者辨識合併需要用到。
 
-4. **轉出來的中文一律轉繁體**（模型的國語訓練資料是簡體、粵語訓練資料是
-   繁體，同一份逐字稿可能簡繁混雜）：
+4. **轉出來的中文一律轉繁體**（模型輸出可能簡繁混雜）：
 
 ```bash
 source "$(conda info --base)/etc/profile.d/conda.sh" && conda activate whisper
@@ -116,8 +101,8 @@ python3 scripts/diarize_and_label.py \
 
 ## 已知限制
 
-- **兩顆模型都不完美**：真實錄音上都會轉錯一些專有名詞（人名、產品名、
-  技術術語），逐字稿不能照單全收，重要引用建議回頭聽原音確認
+- **模型不是完美的**：真實錄音上會轉錯一些專有名詞（人名、產品名、技術
+  術語），逐字稿不能照單全收，重要引用建議回頭聽原音確認
 - **短插話容易被吞併**：一兩秒的回應（「嗯」、「OK」、笑聲）常常被合併進
   旁邊那段較長發言的語者標籤裡，因為 whisper 的段落切分沒有細到能單獨框出
   這種插話——語者標籤是「大致對」，不是逐字精準
