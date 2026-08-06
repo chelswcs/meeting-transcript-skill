@@ -1,14 +1,14 @@
 ---
 name: meeting-transcript
-description: 把會議錄音轉成逐字稿（含語者辨識）並整理成會議紀錄分析。使用者說「分析會議紀錄」、「把這段錄音轉成會議紀錄」或給一段錄音檔要求整理重點時使用。全程本機執行（mlx-whisper + pyannote），不上傳雲端，適合含敏感內容的會議。國語/英文/粵語混雜場景準確度較高。
+description: 把會議錄音轉成逐字稿（含語者辨識）並整理成會議紀錄分析。使用者說「分析會議紀錄」、「把這段錄音轉成會議紀錄」或給一段錄音檔要求整理重點時使用。全程本機執行（mlx-whisper + pyannote），不上傳雲端，適合含敏感內容的會議。
 ---
 
 # 會議錄音 → 逐字稿（含語者標籤）→ 會議紀錄分析
 
-本機用 Apple MLX 跑 Whisper（粵語/國語/英文微調模型）+ pyannote.audio 做語者
-辨識，錄音不會上傳到任何雲端服務。整套流程分三階段：**轉逐字稿**（機械式、
-不可省略驗證）→**語者辨識並合併**（機械式，用 `scripts/diarize_and_label.py`）
-→**讀逐字稿產出分析**（LLM 讀懂內容後整理）。
+本機用 Apple MLX 跑 Whisper + pyannote.audio 做語者辨識，錄音不會上傳到任何
+雲端服務。整套流程分三階段：**轉逐字稿**（機械式、不可省略驗證）→**語者辨識
+並合併**（機械式，用 `scripts/diarize_and_label.py`）→**讀逐字稿產出分析**
+（LLM 讀懂內容後整理）。
 
 ## 前置需求
 
@@ -18,14 +18,19 @@ description: 把會議錄音轉成逐字稿（含語者辨識）並整理成會�
 的 HuggingFace token 設定（腳本裝得完套件，但同意條款、建立 token 這兩步需要
 使用者自己在瀏覽器上做）。
 
-## 為什麼不用官方 Whisper 模型
+## 模型選擇：預設官方版，粵語為主才切換
 
-官方 `whisper-large-v3-turbo` 在粵語上表現明顯偏弱（第三方測試字元錯誤率可達
-45%），常把粵語自動轉寫成書面中文而非口語，還會認錯字。這裡預設用
+**預設用官方 `mlx-community/whisper-large-v3-turbo`**——適合國語/英文為主、
+或純英文的會議。用真實混雜國語/英文技術詞彙的錄音實測，官方版對專有名詞
+（人名、產品名、技術術語）辨識比粵語微調版準。
+
+**如果會議整段幾乎都是粵語**（不是偶爾夾雜），改用針對粵語/英文微調過的
 [`JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english`](https://huggingface.co/JackyHoCL/whisper-large-v3-turbo-cantonese-yue-english)
-（MIT 授權），實測粵語辨識大幅提升，國語、英文不受影響。如果你的會議不涉及
-粵語，也可以把下面指令裡的 `--model` 換成官方
-`mlx-community/whisper-large-v3-turbo`，不用額外轉檔。
+（MIT 授權，純粵語測試時大幅勝過官方版）——先跑 `./setup.sh --cantonese`
+轉檔，再把下面指令裡的 `--model` 換成
+`~/.cache/mlx-whisper-models/cantonese-yue-english`。
+
+先跟使用者確認這場會議的語言組合，不確定就用官方版（適用範圍較廣的預設值）。
 
 ## 步驟 1：轉逐字稿
 
@@ -46,7 +51,7 @@ ffmpeg -y -i "<音檔路徑>" -ar 16000 -ac 1 meetings/transcripts/<檔名>.wav
 ```bash
 source "$(conda info --base)/etc/profile.d/conda.sh" && conda activate whisper
 mlx_whisper meetings/transcripts/<檔名>.wav \
-  --model ~/.cache/mlx-whisper-models/cantonese-yue-english \
+  --model mlx-community/whisper-large-v3-turbo \
   --condition-on-previous-text False \
   -f json -o meetings/transcripts
 ```
@@ -111,6 +116,8 @@ python3 scripts/diarize_and_label.py \
 
 ## 已知限制
 
+- **兩顆模型都不完美**：真實錄音上都會轉錯一些專有名詞（人名、產品名、
+  技術術語），逐字稿不能照單全收，重要引用建議回頭聽原音確認
 - **短插話容易被吞併**：一兩秒的回應（「嗯」、「OK」、笑聲）常常被合併進
   旁邊那段較長發言的語者標籤裡，因為 whisper 的段落切分沒有細到能單獨框出
   這種插話——語者標籤是「大致對」，不是逐字精準
