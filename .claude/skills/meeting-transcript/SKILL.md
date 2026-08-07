@@ -30,7 +30,15 @@ mkdir -p meetings/transcripts
 ffmpeg -y -i "<音檔路徑>" -ar 16000 -ac 1 meetings/transcripts/<檔名>.wav
 ```
 
-3. 執行轉錄。**`--condition-on-previous-text False` 這個參數不能省**——
+3. **準備詞彙提示（可選但建議）**：`glossary/web3-glossary.md`（這個 repo 附的）
+   是通用 Web3/加密貨幣領域詞彙，會議內容涉及交易所、公鏈、DeFi 術語時可以
+   直接用。如果使用者有自己的私有詞彙檔案（公司內部人名/產品名，例如放在
+   使用者自己專案裡、不進這個公開 repo 的檔案），把兩份內容合併組成一段自然
+   語句，準備當 `--initial-prompt`——公司名、人名、產品名這類詞光靠模型自己
+   聽很容易錯（同音字亂猜、英文專有名詞音譯錯），餵詞彙提示能改善這個問題。
+   都沒有就跳過這步，不要自己編專有名詞。
+
+4. 執行轉錄。**`--condition-on-previous-text False` 這個參數不能省**——
    長錄音沒加這個參數容易觸發 Whisper 的「幻覺迴圈」，同一個詞連續重複幾百次、
    後面整段內容直接消失不轉，而且看起來像是「有輸出」不容易發現：
 
@@ -39,12 +47,13 @@ source "$(conda info --base)/etc/profile.d/conda.sh" && conda activate whisper
 mlx_whisper meetings/transcripts/<檔名>.wav \
   --model mlx-community/whisper-large-v3-turbo \
   --condition-on-previous-text False \
+  --initial-prompt "<有詞彙檔案才加這個參數>" \
   -f json -o meetings/transcripts
 ```
 
 用 `-f json`（不是 txt）才會保留每段的時間戳，語者辨識合併需要用到。
 
-4. **轉出來的中文一律轉繁體**（模型輸出可能簡繁混雜）：
+5. **轉出來的中文一律轉繁體**（模型輸出可能簡繁混雜）：
 
 ```bash
 source "$(conda info --base)/etc/profile.d/conda.sh" && conda activate whisper
@@ -61,7 +70,7 @@ json.dump(d, open(path, 'w', encoding='utf-8'), ensure_ascii=False)
 "
 ```
 
-5. **驗證**：實際打開這個 json 檔，讀完整份的 `segments[].text`，逐段確認
+6. **驗證**：實際打開這個 json 檔，讀完整份的 `segments[].text`，逐段確認
    ——特別注意有沒有同一句話連續重複幾十次的段落（幻覺迴圈殘留，代表哪裡
    還是漏轉了），不能只看指令碼 exit code 就當作成功。
 
