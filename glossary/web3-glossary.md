@@ -6,7 +6,11 @@
 
 ## 公鏈 / L1 / L2
 
-- Ethereum、Solana、Bitcoin、BNB Chain、Base、Arbitrum、Optimism、Polygon
+- Ethereum、Solana、Bitcoin、BNB Chain、Base、Arbitrum、Optimism、Polygon、Sui
+
+## 開發公司 / 基金會
+
+- Mysten Labs（Sui 背後的公司）
 
 ## 交易所
 
@@ -27,6 +31,7 @@
 - LRT（Liquid Restaking Token）、restaking、staking、bridge
 - perp（perpetual futures，永續合約）
 - tokenized stock（xStock、bStock 這類代幣化股票的統稱）
+- signless trading（免簽名交易，讓用戶不用每筆交易都跳錢包簽名確認的 UX 設計）
 
 ## 電競（預測市場類產品常見的下注品項）
 
