@@ -7,6 +7,7 @@
 ## 公鏈 / L1 / L2
 
 - Ethereum、Solana、Bitcoin、BNB Chain、Base、Arbitrum、Optimism、Polygon、Sui
+- Avalanche、Cronos、Fantom
 
 ## 開發公司 / 基金會
 
@@ -32,6 +33,7 @@
 - perp（perpetual futures，永續合約）
 - tokenized stock（xStock、bStock 這類代幣化股票的統稱）
 - signless trading（免簽名交易，讓用戶不用每筆交易都跳錢包簽名確認的 UX 設計）
+- Solidity（以太坊智能合約的程式語言）
 
 ## 電競（預測市場類產品常見的下注品項）
 
@@ -40,6 +42,8 @@
 ## 公開人物（討論產業案例時常提到）
 
 - Sam Altman、Mark Zuckerberg、Justin Sun（孫宇晨）、Arthur Hayes
+- Satoshi Nakamoto（比特幣創辦人）、Vitalik Buterin（以太坊創辦人）
+- Anatoly Yakovenko、Raj Gokal（Solana 共同創辦人）
 
 ---
 
