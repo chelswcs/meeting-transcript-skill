@@ -57,6 +57,13 @@ cd meeting-transcript-skill
 
 在 Claude Code 裡：「分析會議紀錄」+ 給錄音檔路徑。
 
+## 進階：背景自動化
+
+想跳過「每次手動開 Claude Code 講一次」，改成丟檔案進資料夾就自動觸發？
+見 [AUTOMATION.md](AUTOMATION.md)——架構、實測踩過的坑（macOS TCC 擋
+`~/Documents`、`flock` 在 macOS 不存在、`--allowedTools` 解析陷阱）、一份
+可以照著改的骨架腳本。
+
 ## 已知限制
 
 - **模型不是完美的**：真實錄音上會轉錯一些專有名詞（人名、產品名、技術術語），逐字稿不能照單全收，重要引用建議回頭聽原音確認
@@ -67,7 +74,7 @@ cd meeting-transcript-skill
 
 ## 授權與致謝
 
-這個 repo（README、SKILL.md、setup.sh、scripts/）採 MIT 授權。
+這個 repo（README、AUTOMATION.md、SKILL.md、setup.sh、scripts/）採 MIT 授權。
 
 依賴：
 - [mlx-whisper](https://github.com/ml-explore/mlx-examples/tree/main/whisper)（Apache 2.0，Apple）
