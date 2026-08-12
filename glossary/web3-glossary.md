@@ -11,7 +11,7 @@
 
 ## 開發公司 / 基金會
 
-- Mysten Labs（Sui 背後的公司）
+- Mysten Labs
 
 ## 交易所
 
@@ -22,28 +22,28 @@
 - Aave、Hyperliquid、GMX、dYdX、Jupiter
 - Polymarket、Kalshi、PredictFun
 
-## 其他常見協議 / 產品（討論競品時常提到）
+## 其他常見協議 / 產品
 
 - Aster、River、Euphoria、icbox.io
 
 ## 術語
 
-- DeFi、TGE（Token Generation Event）
-- LRT（Liquid Restaking Token）、restaking、staking、bridge
-- perp（perpetual futures，永續合約）
-- tokenized stock（xStock、bStock 這類代幣化股票的統稱）
-- signless trading（免簽名交易，讓用戶不用每筆交易都跳錢包簽名確認的 UX 設計）
-- Solidity（以太坊智能合約的程式語言）
+- DeFi、TGE
+- LRT、restaking、staking、bridge
+- perp
+- tokenized stock
+- signless trading
+- Solidity
 
-## 電競（預測市場類產品常見的下注品項）
+## 電競
 
-- CS2、英雄聯盟（League of Legends）、瓦羅蘭（Valorant）
+- CS2、英雄聯盟、瓦羅蘭
 
-## 公開人物（討論產業案例時常提到）
+## 公開人物
 
-- Sam Altman、Mark Zuckerberg、Justin Sun（孫宇晨）、Arthur Hayes
-- Satoshi Nakamoto（比特幣創辦人）、Vitalik Buterin（以太坊創辦人）
-- Anatoly Yakovenko、Raj Gokal（Solana 共同創辦人）
+- Sam Altman、Mark Zuckerberg、Justin Sun、Arthur Hayes
+- Satoshi Nakamoto、Vitalik Buterin
+- Anatoly Yakovenko、Raj Gokal
 
 ---
 
